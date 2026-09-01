@@ -82,13 +82,15 @@ def check_manifests(repo_root: Path, skill_names: set) -> tuple[list, list]:
     qm = repo_root / ".qoder-plugin" / "plugin.json"
     cm = repo_root / ".claude-plugin" / "plugin.json"
     mk = repo_root / ".claude-plugin" / "marketplace.json"
+    qk = repo_root / ".qoder-plugin" / "marketplace.json"
 
     if not (qm.exists() or cm.exists()):
         warns.append("M0 未发现插件清单（.qoder-plugin/.claude-plugin），跳过插件一致性校验")
         return issues, warns
 
     docs = {}
-    for label, path in (("qoder", qm), ("claude", cm), ("marketplace", mk)):
+    for label, path in (("qoder", qm), ("claude", cm), ("marketplace", mk),
+                        ("qoder-marketplace", qk)):
         if not path.exists():
             issues.append(f"M1 缺少清单: {path.relative_to(repo_root)}")
             continue
@@ -98,16 +100,18 @@ def check_manifests(repo_root: Path, skill_names: set) -> tuple[list, list]:
             issues.append(f"M1 {label} 清单非合法 JSON: {e}")
 
     q, c, m = docs.get("qoder"), docs.get("claude"), docs.get("marketplace")
+    qmkt = docs.get("qoder-marketplace")
 
-    # M2 插件名一致：两份 plugin.json + marketplace 条目均为 chinese-agent-skills
+    # M2 插件名一致：两份 plugin.json + 两份 marketplace 条目均为 chinese-agent-skills
     names = []
     if q:
         names.append(q.get("name", ""))
     if c:
         names.append(c.get("name", ""))
-    if m:
-        for p in m.get("plugins", []):
-            names.append(p.get("name", ""))
+    for mkt in (m, qmkt):
+        if mkt:
+            for p in mkt.get("plugins", []):
+                names.append(p.get("name", ""))
     if names and len(set(names)) != 1:
         issues.append(f"M2 插件名不一致: {sorted(set(names))}")
 
@@ -137,13 +141,15 @@ def check_manifests(repo_root: Path, skill_names: set) -> tuple[list, list]:
         if logo and not (repo_root / logo.lstrip("./")).exists():
             issues.append(f"M4 logo 不存在: {logo}")
 
-    # M5 marketplace 的 source 可解析到真实目录（含 .claude-plugin/plugin.json）
-    if m:
-        for p in m.get("plugins", []):
+    # M5 两份 marketplace 的 source 均可解析到真实目录（含各自的 plugin.json）
+    for mkt, sub in ((m, ".claude-plugin"), (qmkt, ".qoder-plugin")):
+        if not mkt:
+            continue
+        for p in mkt.get("plugins", []):
             src = p.get("source", "")
             sdir = (repo_root / src).resolve()
-            if not sdir.is_dir() or not (sdir / ".claude-plugin" / "plugin.json").exists():
-                issues.append(f"M5 marketplace source 无效: {src!r}")
+            if not sdir.is_dir() or not (sdir / sub / "plugin.json").exists():
+                issues.append(f"M5 {sub} marketplace source 无效: {src!r}")
     return issues, warns
 
 

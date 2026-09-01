@@ -34,13 +34,22 @@ claude plugin uninstall chinese-agent-skills
 claude plugin marketplace remove chinese-agent-skills
 ```
 
-**Qoder / Qoder 国内版**（zip 整包安装）：
+**Qoder / Qoder 国内版**（本仓库同样是 Qoder 插件市场，装了 `qodercli` 的环境）：
+
+```bash
+qoder plugins marketplace add a3449731/chinese-agent-skills   # 远程（仓库需公开）
+qoder plugins install chinese-agent-skills
+qoder plugins update chinese-agent-skills                     # 升级
+qoder plugins uninstall chinese-agent-skills                  # 卸载
+```
+
+**Qoder IDE（无 qodercli 时，本机导入）**：
 
 ```bash
 python3 install.py --package     # 在仓库根生成 chinese-agent-skills-<版本>.zip
 ```
 
-然后在 Qoder 的插件管理里安装该 zip（zip 根即 `.qoder-plugin/plugin.json`）。装了 `qodercli` 的环境也可直接：`python3 install.py --tool qoder-cn`。
+然后在 Qoder 的 扩展 → 插件 → 添加插件 → 上传插件 中导入该 zip（仅当前设备生效）。
 
 安装后重启（或新开）会话生效。
 
@@ -152,7 +161,7 @@ bash tests/run_hooks_tests.sh        # hooks-create 保证层双向验证（14 �
 ├── LICENSE              # MIT（原作者版权行 + 中文重整版声明）
 ├── skills/              # 33 个技能（每个目录含 SKILL.md 及随附资源）
 ├── install.py           # 跨平台安装器：插件式整包 / 复制式 / zip 打包（纯标准库）
-├── .qoder-plugin/       # Qoder 插件清单（plugin.json）——仓库即 Qoder 插件
+├── .qoder-plugin/       # Qoder 插件与市场清单（plugin.json + marketplace.json）——仓库即 Qoder 插件与市场
 ├── .claude-plugin/      # Claude Code 插件与市场清单（plugin.json + marketplace.json）
 ├── assets/              # 插件图标（avatar.svg）
 ├── tests/               # 4 个测试脚本 + 4 份历史报告（含插件清单校验）

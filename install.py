@@ -112,10 +112,12 @@ def install_plugin_claude(dry_run: bool, yes: bool) -> int:
 
 def install_plugin_qoder(tool: str, dry_run: bool) -> int:
     hint = [
-        f"未检测到 `qodercli`。请在 Qoder IDE 里安装本插件：",
-        f"  1. python3 install.py --package        # 生成 zip",
-        f"  2. Qoder 插件管理 → 从本地安装该 zip（或用插件目录导入）",
-        f"  3. 或把本仓库地址提供给 Qoder 的插件安装入口",
+        f"未检测到 `qodercli`。可选安装方式：",
+        f"  1. 装了 qodercli 的环境（本仓库即插件市场）：",
+        f"       qoder plugins marketplace add a3449731/chinese-agent-skills",
+        f"       qoder plugins install {PLUGIN_NAME}",
+        f"  2. Qoder IDE：python3 install.py --package 生成 zip，",
+        f"     在 扩展 → 插件 → 添加插件 → 上传插件 中导入",
     ]
     if not have("qodercli"):
         print("\n".join(hint))
