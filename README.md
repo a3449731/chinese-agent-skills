@@ -121,7 +121,8 @@ bash tests/run_hooks_tests.sh        # hooks-create 保证层双向验证（14 �
 ├── LICENSE          # MIT（原作者版权行 + 中文重整版声明）
 ├── skills/          # 33 个技能（每个目录含 SKILL.md 及随附资源）
 ├── install.py       # 跨平台安装器（纯标准库）
-├── tests/           # 4 个测试脚本 + 3 份历史报告
+├── tests/           # 4 个测试脚本 + 4 份历史报告（含测试计划）
+├── archive/         # 历史文档存档（原资料库索引与兼容性审查报告）
 ├── .gitattributes   # 脚本强制 LF，防 Windows CRLF 破坏
 └── .gitignore
 ```
