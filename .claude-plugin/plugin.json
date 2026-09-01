@@ -1,0 +1,17 @@
+{
+  "name": "chinese-agent-skills",
+  "description": "33 个中文 AI 编码技能包：上下文加载与规划、PIV 实现循环、治理与元技能、工具类四层，一次整体安装",
+  "version": "0.1.0",
+  "author": {
+    "name": "a3449731"
+  },
+  "homepage": "https://github.com/a3449731/chinese-agent-skills",
+  "repository": "https://github.com/a3449731/chinese-agent-skills",
+  "license": "MIT",
+  "keywords": [
+    "chinese",
+    "coding-workflow",
+    "piv-loop",
+    "skills-bundle"
+  ]
+}

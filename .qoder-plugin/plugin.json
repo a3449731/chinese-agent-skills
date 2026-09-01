@@ -1,0 +1,18 @@
+{
+  "name": "chinese-agent-skills",
+  "displayName": "中文 Agent 技能包",
+  "version": "0.1.0",
+  "description": "33 Chinese AI coding skills in four layers: context priming & planning, PIV implementation loop, governance & meta-skills, and tooling. Installable as one bundle.",
+  "descriptionZh": "33 个中文 AI 编码技能：上下文加载与规划、PIV 实现循环、治理与元技能、工具类四层，一次整体安装、统一升级与卸载。",
+  "author": {
+    "name": "a3449731"
+  },
+  "homepage": "https://github.com/a3449731/chinese-agent-skills",
+  "repository": "https://github.com/a3449731/chinese-agent-skills",
+  "logo": "./assets/avatar.svg",
+  "keywords": ["qoder-plugin", "skill", "chinese", "coding-workflow"],
+  "category": "developer-tools",
+  "tags": ["skill"],
+  "skills": "./skills/",
+  "preserveUpstreamMetadata": true
+}

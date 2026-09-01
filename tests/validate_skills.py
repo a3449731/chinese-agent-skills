@@ -21,6 +21,7 @@ used as the stage-2 test baseline. Pure standard library, read-only.
 from __future__ import annotations
 
 import argparse
+import json
 import re
 import sys
 from pathlib import Path
@@ -72,6 +73,78 @@ def parse_frontmatter(text: str) -> dict:
         "description": bool(DESC_RE.search(fm)),
         "argument_hint": bool(ARGHINT_RE.search(fm)),
     }
+
+
+def check_manifests(repo_root: Path, skill_names: set) -> tuple[list, list]:
+    """校验插件清单（.qoder-plugin / .claude-plugin）与 skills/ 的一致性。
+    清单不存在时仅 WARN（允许 SKILLS_DIR 指向已安装副本的场景）。"""
+    issues, warns = [], []
+    qm = repo_root / ".qoder-plugin" / "plugin.json"
+    cm = repo_root / ".claude-plugin" / "plugin.json"
+    mk = repo_root / ".claude-plugin" / "marketplace.json"
+
+    if not (qm.exists() or cm.exists()):
+        warns.append("M0 未发现插件清单（.qoder-plugin/.claude-plugin），跳过插件一致性校验")
+        return issues, warns
+
+    docs = {}
+    for label, path in (("qoder", qm), ("claude", cm), ("marketplace", mk)):
+        if not path.exists():
+            issues.append(f"M1 缺少清单: {path.relative_to(repo_root)}")
+            continue
+        try:
+            docs[label] = json.loads(path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError as e:
+            issues.append(f"M1 {label} 清单非合法 JSON: {e}")
+
+    q, c, m = docs.get("qoder"), docs.get("claude"), docs.get("marketplace")
+
+    # M2 插件名一致：两份 plugin.json + marketplace 条目均为 chinese-agent-skills
+    names = []
+    if q:
+        names.append(q.get("name", ""))
+    if c:
+        names.append(c.get("name", ""))
+    if m:
+        for p in m.get("plugins", []):
+            names.append(p.get("name", ""))
+    if names and len(set(names)) != 1:
+        issues.append(f"M2 插件名不一致: {sorted(set(names))}")
+
+    # M3 版本号一致且非空，name/version 必填（Qoder 校验器的必填字段）
+    versions = [d.get("version", "") for d in (q, c) if d]
+    if versions and (len(set(versions)) != 1 or not versions[0]):
+        issues.append(f"M3 版本号缺失或不一致: {versions}")
+    if q and not q.get("name"):
+        issues.append("M3 qoder 清单缺少 name")
+
+    # M4 qoder 清单声明的 skills 路径存在，且覆盖全部 33 个技能目录
+    if q:
+        sp = q.get("skills", "")
+        if not sp.startswith("./"):
+            issues.append(f"M4 skills 路径必须以 ./ 开头: {sp!r}")
+        else:
+            sdir = repo_root / sp.lstrip("./").rstrip("/")
+            if not sdir.is_dir():
+                issues.append(f"M4 skills 路径不存在: {sp}")
+            else:
+                actual = {d.name for d in sdir.iterdir()
+                          if d.is_dir() and (d / "SKILL.md").is_file()}
+                if actual != skill_names:
+                    issues.append(f"M4 清单 skills 与技能目录集不符: "
+                                  f"多 {sorted(actual - skill_names)} 缺 {sorted(skill_names - actual)}")
+        logo = q.get("logo", "")
+        if logo and not (repo_root / logo.lstrip("./")).exists():
+            issues.append(f"M4 logo 不存在: {logo}")
+
+    # M5 marketplace 的 source 可解析到真实目录（含 .claude-plugin/plugin.json）
+    if m:
+        for p in m.get("plugins", []):
+            src = p.get("source", "")
+            sdir = (repo_root / src).resolve()
+            if not sdir.is_dir() or not (sdir / ".claude-plugin" / "plugin.json").exists():
+                issues.append(f"M5 marketplace source 无效: {src!r}")
+    return issues, warns
 
 
 def check_skill(skill_dir: Path) -> dict:
@@ -165,6 +238,9 @@ def main() -> int:
     n_fail = sum(1 for r in results if r["issues"])
     n_warn = sum(1 for r in results if not r["issues"] and r["warns"])
 
+    # plugin manifest validation (repo root = parent of skills dir)
+    m_issues, m_warns = check_manifests(root.parent, {r["name"] for r in results})
+
     print(f"技能目录数: {len(dirs)}（预期 33）")
     print(f"多余非目录文件: {extra or '无'}")
     print(f"未知技能: {unknown or '无'}")
@@ -185,6 +261,15 @@ def main() -> int:
         print(f"\n术语残留命中 {len(residue_total)} 条（需人工判定是否误报）:")
         for name, item in residue_total:
             print(f"  {name}: {item}")
+
+    status = "FAIL" if m_issues else ("WARN" if m_warns else "PASS")
+    print(f"\n[{status}] 插件清单校验")
+    for i in m_issues:
+        print(f"    - {i}")
+    for w in m_warns:
+        print(f"    ~ {w}")
+    if m_issues:
+        n_fail += 1
 
     # report file (stage-2 test baseline)
     if args.report:

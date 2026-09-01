@@ -1,6 +1,6 @@
 # 中文 Agent 技能包（33 个）
 
-一套可直接安装的中文 AI 编码技能：上下文加载、规划、PIV 实现循环、治理与元技能、工具类四层，共 **33 个**。同一份 `SKILL.md` 文件可安装到 Qoder、Claude Code、Codex、Cursor 的个人技能目录，纯标准库脚本，macOS / Linux / Windows 均可。
+一套可直接安装的中文 AI 编码技能：上下文加载、规划、PIV 实现循环、治理与元技能、工具类四层，共 **33 个**。支持两种安装形态：**插件式整包安装**（Qoder / Claude Code，一次安装、统一升级与卸载，推荐）与逐技能复制安装（全平台可用）。纯标准库脚本，macOS / Linux / Windows 均可。
 
 ## 出处与许可
 
@@ -12,23 +12,54 @@
 
 ## 安装
 
-需要本机有 `git` 与本仓库的克隆。安装器为纯标准库，Windows 用 `python install.py`，macOS/Linux 用 `python3 install.py`。
+### 方法一：插件式整包安装（推荐，Qoder / Claude Code）
 
-**方法一：安装器（推荐）**
+33 个技能作为一个插件整体安装，带版本号，可一键升级/卸载。
+
+**Claude Code**（本仓库即插件市场，其他人可直接用 GitHub 地址安装）：
 
 ```bash
-python3 install.py --tool qoder-cn   # Qoder 国内版  ~/.qoder-cn/skills/
-python3 install.py --tool qoder      # Qoder 国际版  ~/.qoder/skills/
-python3 install.py --tool claude     # Claude Code   ~/.claude/skills/
-python3 install.py --tool codex      # Codex         ~/.codex/skills/
-python3 install.py --tool cursor     # Cursor        ~/.cursor/skills/（需 v0.50+，并在 Settings → Rules 开启 Import Agent Skills）
+# 你自己（本地仓库）
+claude plugin marketplace add /path/to/chinese-agent-skills
+claude plugin install chinese-agent-skills@chinese-agent-skills
+
+# 其他人（远程，仓库需公开）
+# 在 Claude Code 里：
+#   /plugin marketplace add a3449731/chinese-agent-skills
+#   /plugin install chinese-agent-skills@chinese-agent-skills
+
+# 升级 / 卸载 / 移除市场
+claude plugin update chinese-agent-skills
+claude plugin uninstall chinese-agent-skills
+claude plugin marketplace remove chinese-agent-skills
 ```
 
-可选参数：`--skills a,b` 只装指定技能；`--dest 目录` 覆盖目标路径；`--force` 覆盖已有同名技能（默认跳过并列出不覆盖项）；`--dry-run` 只打印不复制。**升级 = 重跑安装器加 `--force`**。安装后重启会话生效。
+**Qoder / Qoder 国内版**（zip 整包安装）：
 
-**方法二：手动复制**
+```bash
+python3 install.py --package     # 在仓库根生成 chinese-agent-skills-<版本>.zip
+```
 
-把 `skills/<技能名>/` 整目录复制到上表对应目录即可。
+然后在 Qoder 的插件管理里安装该 zip（zip 根即 `.qoder-plugin/plugin.json`）。装了 `qodercli` 的环境也可直接：`python3 install.py --tool qoder-cn`。
+
+安装后重启（或新开）会话生效。
+
+### 方法二：安装器（Cursor / Codex，或任何平台想退回复制式）
+
+Cursor 与 Codex 尚无插件系统，用复制式把全部 33 个技能一次装入 `skills/` 目录。需要本机有 `git` 与本仓库的克隆；安装器为纯标准库，Windows 用 `python install.py`，macOS/Linux 用 `python3 install.py`。
+
+```bash
+python3 install.py --tool cursor --mode copy   # Cursor ~/.cursor/skills/（需 v0.50+，并在 Settings → Rules 开启 Import Agent Skills）
+python3 install.py --tool codex --mode copy    # Codex  ~/.codex/skills/
+python3 install.py --tool claude --mode copy   # 也可复制式装到 ~/.claude/skills/
+python3 install.py --tool qoder-cn --mode copy # 也可复制式装到 ~/.qoder-cn/skills/
+```
+
+可选参数：`--skills a,b` 只装指定技能；`--dest 目录` 覆盖目标路径；`--force` 覆盖已有同名技能（默认跳过并列出不覆盖项）；`--dry-run` 只打印不复制。**升级 = 重跑安装器加 `--force`**。
+
+### 方法三：手动复制
+
+把 `skills/<技能名>/` 整目录复制到目标工具的 `skills/` 目录即可（如 `~/.qoder-cn/skills/`、`~/.claude/skills/`、`~/.codex/skills/`、`~/.cursor/skills/`）。
 
 ## 技能索引（四层）
 
@@ -117,12 +148,15 @@ bash tests/run_hooks_tests.sh        # hooks-create 保证层双向验证（14 �
 ## 仓库结构
 
 ```
-├── README.md        # 本文件
-├── LICENSE          # MIT（原作者版权行 + 中文重整版声明）
-├── skills/          # 33 个技能（每个目录含 SKILL.md 及随附资源）
-├── install.py       # 跨平台安装器（纯标准库）
-├── tests/           # 4 个测试脚本 + 4 份历史报告（含测试计划）
-├── archive/         # 历史文档存档（原资料库索引与兼容性审查报告）
-├── .gitattributes   # 脚本强制 LF，防 Windows CRLF 破坏
+├── README.md            # 本文件
+├── LICENSE              # MIT（原作者版权行 + 中文重整版声明）
+├── skills/              # 33 个技能（每个目录含 SKILL.md 及随附资源）
+├── install.py           # 跨平台安装器：插件式整包 / 复制式 / zip 打包（纯标准库）
+├── .qoder-plugin/       # Qoder 插件清单（plugin.json）——仓库即 Qoder 插件
+├── .claude-plugin/      # Claude Code 插件与市场清单（plugin.json + marketplace.json）
+├── assets/              # 插件图标（avatar.svg）
+├── tests/               # 4 个测试脚本 + 4 份历史报告（含插件清单校验）
+├── archive/             # 历史文档存档（原资料库索引与兼容性审查报告）
+├── .gitattributes       # 脚本强制 LF，防 Windows CRLF 破坏
 └── .gitignore
 ```

@@ -1,0 +1,16 @@
+{
+  "name": "chinese-agent-skills",
+  "metadata": {
+    "description": "中文 Agent 技能包插件市场：33 个中文 AI 编码技能，一次整体安装"
+  },
+  "owner": {
+    "name": "a3449731"
+  },
+  "plugins": [
+    {
+      "name": "chinese-agent-skills",
+      "source": "./",
+      "description": "33 个中文 AI 编码技能：上下文加载与规划、PIV 实现循环、治理与元技能、工具类四层"
+    }
+  ]
+}
